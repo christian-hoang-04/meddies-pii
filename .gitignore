@@ -1,0 +1,64 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+.antigravity/
+.bun/
+.codex/
+*.jsonl
+/data/
+!/examples/
+!/examples/sample.inline.jsonl
+/demo-output/
+notebooks/
+docs/plans/
+project-manager/
+references/
+
+# Large local render artifacts (moved out of project-manager 2026-06-08)
+/preview/
+/reports/
+/logs/
+
+# Derived run-input artifacts: content-addressed and reproducible from
+# build_ignore_list, and carry real dataset row identifiers, so they stay
+# local rather than tracked. Modal reads them from disk at image build time.
+/scripts/ops/artifacts/

@@ -1,0 +1,110 @@
+"""Thai, Lao, and Burmese organization-pack declarations."""
+
+from __future__ import annotations
+
+from meddies_pii.regex_runtime.packs.pack import Cue, CuePack
+
+TH_ORG_PACK = CuePack(
+    pack_id="th_org_scriptless",
+    version=1,
+    language="th",
+    label="company_name",
+    tier="CONTEXT",
+    cues=(
+        Cue("โรงพยาบาล", "pre"),
+        Cue("คลินิก", "pre"),
+        Cue("บริษัท", "pre"),
+    ),
+    head_letters="",
+    body_letters="",
+    name_continuations=(),
+    blocked_adjacent_tokens=(
+        "ประกัน",
+        "ส่งต่อ",
+        "และ",
+        "ยินดี",
+        "ต้นทาง",
+        "ตามวัน",
+        "ตั้งแต่วัน",
+        "ค่ะ",
+        "อ้างอิง",
+        "อายุรกรรม",
+        "สั่งยา",
+        "ปลายทาง",
+        "คู่สัญญา",
+    ),
+    max_name_tokens=0,
+    min_adjacent_digits=0,
+    capture_mode="scriptless",
+    script_ranges=((0x0E00, 0x0E7F),),
+    left_boundary_particles=(
+        "เข้ารับการรักษาใน",
+        "ตามแนวทางการรักษาของ",
+        "ส่งต่อ",
+    ),
+    right_boundary_particles=(
+        "เกี่ยวกับ",
+        "ทันที",
+        "ที่",
+        "ใน",
+        "ของ",
+    ),
+    max_name_chars=24,
+    allow_trailing_number=True,
+)
+
+
+LO_ORG_PACK = CuePack(
+    pack_id="lo_org_scriptless",
+    version=1,
+    language="lo",
+    label="company_name",
+    tier="CONTEXT",
+    cues=(Cue("ໂຮງພະຍາບານ", "pre"), Cue("ຄລີນິກ", "pre")),
+    head_letters="",
+    body_letters="",
+    name_continuations=(),
+    blocked_adjacent_tokens=(
+        "ສຸກເສີນ",
+        "ໄດ້ຈັດນັດ",
+        "ຮັບສົ່ງ",
+        "ຮັບສາຍ",
+        "ອາຍຸການ",
+        "ອອກໂຕປີດິກ",
+        "ສົ່ງຕໍ່",
+        "ລົງທະບຽນ",
+        "ມີເວັບ",
+        "ພາຍ",
+        "ຝາກ",
+        "ຜູ້ສົ່ງ",
+        "ປະສານງານ",
+        "ກຳນົດ",
+    ),
+    max_name_tokens=0,
+    min_adjacent_digits=0,
+    capture_mode="scriptless",
+    script_ranges=((0x0E80, 0x0EFF),),
+    left_boundary_particles=("ໄປ",),
+    right_boundary_particles=("ໃກ້ທີ່ສຸດ", "ທີ່", "ໃນ", "ຂອງ"),
+    max_name_chars=20,
+)
+
+
+MY_ORG_PACK = CuePack(
+    pack_id="my_org_scriptless",
+    version=1,
+    language="my",
+    label="company_name",
+    tier="CONTEXT",
+    cues=(Cue("ဆေးရုံ", "post"),),
+    head_letters="",
+    body_letters="",
+    name_continuations=(),
+    blocked_adjacent_tokens=("လက်ခံ", "ပြည်သူ့", "နီးစပ်ရာ", "ပေးပို့"),
+    max_name_tokens=0,
+    min_adjacent_digits=0,
+    capture_mode="scriptless",
+    script_ranges=((0x1000, 0x109F),),
+    max_name_chars=16,
+    blocked_terminal_tokens=("မည့်", "နိုင်ငံ"),
+)

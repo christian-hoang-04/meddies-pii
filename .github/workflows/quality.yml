@@ -1,0 +1,80 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Ruff, tests, source types, package build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          prune-cache: true
+          version: "0.12.0"
+
+      - name: Check lockfile
+        run: uv lock --check
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups --extra pdf-redaction
+
+      - name: Strict Ruff lint
+        run: uv run ruff check --config ruff-strict.toml .
+
+      - name: Check strict Ruff formatting
+        run: uv run ruff format --config ruff-strict.toml --check .
+
+      - name: Full pinned lintmax gate
+        run: uvx --from 'git+https://github.com/hahuyhoang411/lintmax-py.git@4cac0c5b770b8f9cdb5a1d84186554ffbd0eb2a7' lintmax-py check .
+
+      - name: Test with branch coverage
+        run: >-
+          uv run pytest --cov=src/meddies_pii --cov-branch
+          --cov-report=term-missing --cov-report=xml:coverage.xml
+          --cov-report=json:coverage.json
+
+      - name: Enforce coverage inventory and thresholds
+        run: uv run python scripts/quality/check_coverage.py coverage.json
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Mypy source type gate
+        run: uv run mypy src/meddies_pii
+
+      - name: Basedpyright source type gate
+        run: uv run basedpyright src/meddies_pii
+
+      - name: Build package distributions
+        run: uv build --out-dir dist
+
+      - name: Enforce package artifact inventory
+        run: uv run python scripts/quality/check_package_inventory.py dist

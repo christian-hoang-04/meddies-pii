@@ -1,0 +1,676 @@
+"""Synthetic locked fixtures for regex selection and clinical-negative safety."""
+
+from __future__ import annotations
+
+# ruff: file-ignore[ambiguous-unicode-character-string]
+# reason: this locked corpus intentionally exercises non-breaking punctuation, full-width text, and
+# reason: mathematical digits. Replacing those source surfaces would change the evidence evaluated.
+import hashlib
+import json
+from dataclasses import asdict, dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class RegexFixture:
+    fixture_id: str
+    text: str
+    language: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RegexExpectedFixture:
+    fixture_id: str
+    text: str
+    language: str
+    expected: tuple[tuple[str, str], ...]
+    reason: str
+
+
+POSITIVE_SELECTION_FIXTURES: tuple[RegexFixture, ...] = (
+    RegexFixture("email", "Email: alpha@example.invalid"),
+    RegexFixture("phone", "Điện thoại: 0900 000 001"),
+    RegexFixture("cccd", "CCCD: 001099000001"),
+    RegexFixture(
+        "private-url",
+        "Liên kết riêng: https://portal.example.invalid/case?token=Abc12345",
+    ),
+    RegexFixture("secret", "API key: sk_test_Abc12345"),
+    RegexFixture(
+        "private-url-parameter-before-the-key",
+        "https://p.test/r?patient=RS46761&token=tok_8f91abcd",
+    ),
+    RegexFixture(
+        "private-url-parameter-after-the-key",
+        "https://p.test/r?token=abc123xyz456&view=pdf",
+    ),
+    RegexFixture(
+        "private-url-then-prose",
+        "https://p.test/r?token=abc123xyz456 and then some prose",
+    ),
+    RegexFixture("email-in-an-hl7-segment", "OBX|3|ST|user@host.test"),
+    RegexFixture(
+        "email-in-a-url-query-parameter",
+        "https://records.test/?email=user@host.test&next=1",
+    ),
+    RegexFixture(
+        "email-after-an-hl7-subcomponent-separator",
+        "OBX|3|ST|source&user@host.test",
+    ),
+    RegexFixture(
+        "email-after-an-hl7-repetition-separator",
+        "OBX|3|ST|source~user@host.test",
+    ),
+    RegexFixture(
+        "private-url-then-ampersand-prose",
+        "https://p.test/r?token=abc123xyz456&plain prose",
+    ),
+    RegexFixture(
+        "private-url-then-ampersand-initialism",
+        "https://p.test/r?token=abc123xyz456&r&d results",
+    ),
+    RegexFixture(
+        "private-url-with-two-trailing-parameters",
+        "https://p.test/r?token=abc123xyz456&view=pdf&lang=vi",
+    ),
+    RegexFixture("email-in-single-quotes", "Contact: 'user@host.test'"),
+    RegexFixture("email-between-asterisks", "*user@host.test*"),
+    RegexFixture("email-after-a-hash", "#user@host.test"),
+    RegexFixture("email-after-leading-dots", "...user@host.test"),
+    RegexFixture("email-local-part-ending-in-a-dot", "user.@host.test"),
+    RegexFixture("email-local-part-ending-in-a-hyphen", "user-@host.test"),
+    RegexFixture(
+        "private-url-with-an-empty-parameter",
+        "https://p.test/r?token=abc123xyz456&view=&lang=vi",
+    ),
+    RegexFixture(
+        "private-url-ending-in-an-empty-parameter",
+        "https://p.test/r?token=abc123xyz456&view=",
+    ),
+    RegexFixture("email-local-part-starting-in-an-underscore", "_user@host.test"),
+    RegexFixture("email-local-part-with-an-interior-underscore", "OBX|3|ST|source_user@host.test"),
+    RegexFixture("email-after-a-prose-ellipsis", "Contact...user@host.test"),
+    RegexFixture("email-local-part-with-consecutive-dots", "a..b@host.test"),
+    RegexFixture("email-local-part-with-two-atoms", "first.last@host.test"),
+    RegexFixture("email-local-part-with-a-plus-tag", "user+tag@host.test"),
+    RegexFixture(
+        "private-url-with-a-punctuation-only-value",
+        "https://p.test/r?token=abc123xyz456&view=!&lang=vi",
+    ),
+    RegexFixture(
+        "private-url-punctuation-only-value-then-prose",
+        "https://p.test/r?token=abc123xyz456&view=! and prose",
+    ),
+    RegexFixture("email-local-part-at-the-length-limit", "a" * 64 + "@host.test"),
+    RegexFixture("email-local-part-over-the-length-limit", "a" * 65 + "@host.test"),
+    RegexFixture(
+        "private-url-ending-a-sentence",
+        "https://p.test/r?token=abc123xyz456&view=pdf.",
+    ),
+    RegexFixture(
+        "private-url-inside-a-sentence",
+        "Link: https://p.test/r?token=abc123xyz456&view=pdf, then more.",
+    ),
+    RegexFixture(
+        "email-over-the-length-limit-with-a-valid-suffix",
+        "a" * 54 + "+" + "b" * 10 + "@host.test",
+    ),
+    RegexFixture("private-url-token-below-the-minimum", "https://p.test/r?token=abc1234"),
+    RegexFixture("private-url-token-at-the-minimum", "https://p.test/r?token=abc12345"),
+    RegexFixture("vi-single-letter-hospital-k-before-period", "Bệnh viện K.", "vi"),
+    RegexFixture("vi-single-letter-hospital-e-before-period", "Bệnh viện E.", "vi"),
+)
+
+LOCKED_CLINICAL_NEGATIVES: tuple[RegexFixture, ...] = (
+    RegexFixture("blood-pressure", "HA 120/80 mmHg, mạch 72 lần/phút."),
+    RegexFixture("spo2", "SpO2 98% khi thở khí phòng."),
+    RegexFixture("labs", "Na 140 mmol/L, K 4.1 mmol/L, Hb 12.5 g/dL."),
+    RegexFixture("dose", "Uống metformin 500 mg hai lần mỗi ngày."),
+    RegexFixture("range", "Khoảng tham chiếu 3.5-5.1 mmol/L."),
+    RegexFixture("icd", "Chẩn đoán ICD-10: E11.9."),
+    RegexFixture("public-url", "Xem https://www.who.int/health-topics/diabetes"),
+    RegexFixture("date-time", "Tái khám lúc 09:30 ngày 31/12/2030."),
+    RegexFixture("uncued-number", "Mã mẫu 001099000001 được tạo tổng hợp."),
+    RegexFixture("uncued-phone-shaped-number", "Mã hồ sơ 0900000001."),
+    RegexFixture("short-number", "Số giường 090000 và phòng 001."),
+    RegexFixture("referral-tier", "Chuyển bệnh viện tuyến trên nếu không đáp ứng."),
+    RegexFixture("generic-facility", "Điều trị tại bệnh viện địa phương."),
+    RegexFixture("nearest-pharmacy", "Liên hệ nhà thuốc gần nhất để mua thuốc."),
+    RegexFixture("case-not-school", "Trường hợp nặng cần hội chẩn toàn viện."),
+    RegexFixture("case-not-school-heading", "## TRƯỜNG HỢP NẶNG"),
+    RegexFixture("title-cased-referral-tier", "Chuyển Bệnh Viện Tuyến Trên"),
+    RegexFixture("anatomic-centre", "Hoại tử ở trung tâm của khối u."),
+    RegexFixture("cue-then-bare-digit", "Điện thoại phòng khám 0 chín một hai."),
+    RegexFixture("uncued-company-word", "Bệnh nhân làm việc cho một công ty tư nhân."),
+    RegexFixture("clinic-without-a-name", "Tái khám tại phòng khám sau hai tuần."),
+    RegexFixture(
+        "de-clinic-without-a-name",
+        "Der Patient wurde in eine Klinik eingewiesen.",
+        "de",
+    ),
+    RegexFixture("de-opening-hours", "Die Klinik Montag bis Freitag geöffnet.", "de"),
+    RegexFixture(
+        "de-weekday-after-the-cue",
+        "Der Termin im Krankenhaus Dienstag entfällt.",
+        "de",
+    ),
+    RegexFixture(
+        "fr-nearest-hospital",
+        "Le patient a été transféré à l'hôpital le plus proche.",
+        "fr",
+    ),
+    RegexFixture("fr-day-hospital", "Prise en charge en hôpital de jour.", "fr"),
+    RegexFixture(
+        "fr-referring-hospital",
+        "Compte rendu adressé à l'hôpital référent.",
+        "fr",
+    ),
+    RegexFixture("es-nearest-hospital", "Fue trasladado al hospital más cercano.", "es"),
+    RegexFixture(
+        "es-referral-clinic",
+        "Continuará el control en la clínica de referencia.",
+        "es",
+    ),
+    RegexFixture("es-neighbourhood-pharmacy", "Acudió a la farmacia del barrio.", "es"),
+    RegexFixture("pt-nearest-hospital", "Encaminhado ao hospital mais próximo.", "pt"),
+    RegexFixture("pt-basic-unit-clinic", "Retorno na clínica da unidade básica.", "pt"),
+    RegexFixture("id-nearest-hospital", "Pasien dirujuk ke rumah sakit terdekat.", "id"),
+    RegexFixture("id-private-hospital", "Dirawat di rumah sakit swasta.", "id"),
+    RegexFixture("id-clinic-without-a-name", "Silakan kontrol di klinik terdekat.", "id"),
+    RegexFixture("ms-nearby-clinic", "Sila ke klinik berdekatan untuk rawatan.", "ms"),
+    RegexFixture("ms-government-hospital", "Dirujuk ke hospital kerajaan.", "ms"),
+    RegexFixture("ms-outpatient-clinic", "Rujukan ke klinik pesakit luar.", "ms"),
+    RegexFixture("fil-nearest-clinic", "Pumunta sa pinakamalapit na klinika.", "fil"),
+    RegexFixture("fil-town-hospital", "Dinala siya sa ospital ng bayan.", "fil"),
+    RegexFixture("en-hospital-course-heading", "Hospital Course: The patient improved.", "en"),
+    RegexFixture("en-hospital-day-heading", "Hospital Day 3, afebrile throughout.", "en"),
+    RegexFixture(
+        "en-hospital-admission-phrase",
+        "Discharged from Hospital Admission today.",
+        "en",
+    ),
+    RegexFixture(
+        "en-hospital-service-phrase",
+        "Referred to Hospital Medicine service.",
+        "en",
+    ),
+    RegexFixture(
+        "unknown-language-rs-initialism",
+        "The RS Smith criteria were applied.",
+    ),
+    RegexFixture("fr-title-day-hospital", "Hôpital de Jour", "fr"),
+    RegexFixture("pt-title-basic-unit", "Clínica da Unidade Básica", "pt"),
+)
+
+LANGUAGE_SCOPED_LOCKED_NEGATIVES: tuple[RegexFixture, ...] = (
+    RegexFixture("en-initialism-then-a-name", "The RS Smith criteria were applied.", "en"),
+    RegexFixture("en-initialism-then-a-grade", "MRI showed RS Grade 2 changes.", "en"),
+    RegexFixture("en-chromosome", "Variant detected on Chr 17.", "en"),
+    RegexFixture("en-labor", "Plan: Labor Induction tomorrow.", "en"),
+    RegexFixture(
+        "en-hospital-acquired-pneumonia",
+        "Diagnosis: Hospital Acquired Pneumonia.",
+        "en",
+    ),
+    RegexFixture(
+        "en-hospital-type-2-diabetes",
+        "Assessment: Hospital Type 2 Diabetes.",
+        "en",
+    ),
+    RegexFixture("ja-hospital-in-prose", "入院した病院で治療を受けた。", "ja"),
+    RegexFixture("en-hospital-stay", "The hospital stay was uneventful.", "en"),
+    RegexFixture("zh-hospital-in-prose", "患者在医院接受治疗。", "zh"),
+    RegexFixture("ko-hospital-in-prose", "환자는 병원에서 치료받았다.", "ko"),
+    RegexFixture(
+        "th-hospital-in-prose",
+        "เข้ารับการรักษาในโรงพยาบาลที่ใกล้ที่สุด",
+        "th",
+    ),
+    RegexFixture("ru-unquoted-abbreviation", "ГБУЗ направила пациента.", "ru"),
+    RegexFixture("ta-hospital-administration", "மருத்துவமனை நிர்வாகம்", "ta"),
+    RegexFixture(
+        "lo-nearest-hospital",
+        "ໄປໂຮງພະຍາບານໃກ້ທີ່ສຸດ.",
+        "lo",
+    ),
+    RegexFixture("my-receiving-hospital", "လက်ခံဆေးရုံ", "my"),
+    RegexFixture("my-public-hospital", "ပြည်သူ့ဆေးရုံ", "my"),
+    RegexFixture("my-nearest-hospital", "နီးစပ်ရာဆေးရုံ", "my"),
+    RegexFixture("my-referring-hospital", "ပေးပို့ဆေးရုံ", "my"),
+)
+
+AUDITED_ORG_NEGATIVE_TEXTS: dict[str, tuple[str, ...]] = {
+    "de": ("Klinik für Innere Medizin",),
+    "en": (
+        "Referring Clinic",
+        "Primary clinic",
+        "Public Health",
+        "Updated Clinic",
+        "Sending Clinic",
+        "Professional Pharmacy",
+        "Preferred Clinic",
+        "Public health",
+        "Primary Clinic",
+        "Updated clinic",
+        "Sending clinic",
+        "Referring clinic",
+        "Professional pharmacy",
+        "Preferred clinic",
+        "Performing Laboratory",
+        "Performing Hospital",
+        "Other Hospital",
+        "Initial clinic",
+        "Initial Clinic",
+        "Home health",
+        "Home Health",
+        "General pharmacy",
+        "General Pharmacy",
+        "For pharmacy",
+        "For Pharmacy",
+        "Call clinic",
+        "Call Clinic",
+        "CDC hospital",
+        "CDC Hospital",
+        "Attending clinic",
+        "Attending Clinic",
+        "Admitting hospital",
+        "Admitting Hospital",
+        "Copyright 2025 Northbridge Health Systems",
+        "Copyright 2026 Northbridge Health Systems",
+        "2024 Northwell Vista Health",
+        "2024 Maplewood Clinic",
+        "2023 City Health Clinic",
+    ),
+    "es": (
+        "clínica OCR",
+        "Clínica OCR",
+        "CLÍNICA OCR",
+        "Clínica de Referencia",
+        "Clínica del Ministerio",
+        "Clínica del 20",
+        "Farmacia Asociada",
+        "laboratorio OCR",
+        "Laboratorio OCR",
+        "clínica del Ministerio",
+        "clínica del 20",
+        "Farmacia Asignada",
+    ),
+    "fil": ("Ospital ng Bayan", "Klinika Telepono", "Klinika Address"),
+    "fr": ("clinique OCR", "Clinique OCR", "CLINIQUE OCR"),
+    "id": (
+        "laboratorium Anda",
+        "Laboratorium Anda",
+        "poliklinik 214",
+        "Rumah Sakit Umum",
+        "Laboratorium Pasien",
+        "Apotek Tujuan",
+    ),
+    "ja": ("紹介元クリニック", "受診病院", "のクリニック", "かかりつけクリニック"),
+    "ko": ("협력병원", "진료병원", "연계병원"),
+    "lo": (
+        "ໂຮງພະຍາບານສຸກເສີນ",
+        "ຄລີນິກໄດ້ຈັດນັດພົບໃຫ້ທ່ານ",
+        "ຄລີນິກຮັບສົ່ງເອກະສານຢູ່",
+        "ຄລີນິກຮັບສາຍສຳຮອງ",
+        "ຄລີນິກອາຍຸການເຂົ້າພົບ",
+        "ຄລີນິກອອກໂຕປີດິກ",
+        "ຄລີນິກສົ່ງຕໍ່",
+        "ຄລີນິກລົງທະບຽນເຂົ້າພັກ",
+        "ຄລີນິກມີເວັບສາທາລະນະ",
+        "ຄລີນິກພາຍ",
+        "ຄລີນິກຝາກຂໍ້ມູນສຽງ",
+        "ຄລີນິກຜູ້ສົ່ງກວດ",
+        "ຄລີນິກປະສານງານ",
+        "ຄລີນິກກຳນົດ",
+    ),
+    "ms": (
+        "klinik OCR",
+        "Klinik OCR",
+        "makmal Encik",
+        "klinik RM 30",
+        "hospital 15 Januari 2024",
+        "Klinik Pengirim",
+        "Klinik Ortopedik",
+        "Klinik Kesihatan",
+        "KLINIK OCR",
+        "Hospital Contoh",
+        "Farmasi Bertugas",
+    ),
+    "my": (
+        "မှ လာမည့်ဆေးရုံ",
+        "မည့်ဆေးရုံ",
+        "ဆေးရုံ ခေါ်ယူမှုအတွက်",
+        "ဆေးရုံခွင့်ပြုချက်စာတမ်း",
+        "ဆေးရုံ မှတ်ပုံတင်",
+        "မြန်မာနိုင်ငံ ဆေးရုံ",
+        "ဆေးရုံအခြေခံလမ်းညွှန် စာမျက်နှ",
+        "ဆေးရုံအခြေခံလမ်းညွှန်",
+        "အုပ်ချုပ်ရေးရုံး",
+        "မြန်မာနိုင်ငံဆေးရုံ",
+        "မြန်မာနိုင်ငံဆေးရုံလမ်း",
+        "ဆေးရုံလမ်းညွှန်",
+        "မဟာဇော် ဆေးရုံ",
+        "မဟာဇော် ဆေးရုံခွဲ",
+        "ဆေးရုံခွဲ",
+        "ဆေးရုံအဝင်ခန်း အော်ဒီယိုမှတ်တမ",
+        "ဆေးရုံအဝင်ခန်း",
+    ),
+    "pt": (
+        "clínica OCR",
+        "Clínica de 12",
+        "Consultório do Dr. Carlos",
+        "consultório do Dr. Carlos",
+        "clínica de 12",
+        "Farmácia de Retirada",
+        "FARMÁCIA HOSPITALAR",
+        "Farmácia Hospitalar",
+        "Clínica de Origem",
+        "Clínica Responsável",
+        "Clínica OCR",
+        "Clínica Geral",
+        "Clínica Associada",
+    ),
+    "ta": (
+        "பொது மருத்துவமனை",
+        "மற்றும் மருத்துவமனை",
+        "பெறுநர் மருத்துவமனை",
+        "அனுப்புநர் மருத்துவமனை",
+        "மேலும் மருத்துவமனை",
+        "பொதுத் தகவலுக்கான மருத்துவமனை",
+        "பதிவு செய்யவும் அல்லது மருத்துவமனை",
+        "பதிவு செய்யப்பட்ட மருத்துவமனை",
+        "நீங்கள் மருத்துவமனை",
+        "நினைவில் இருக்கும் மற்ற மருத்துவமனை",
+        "நகர மருத்துவமனை",
+        "எனது மருத்துவமனை",
+        "இந்தப் பதிவு மருத்துவமனை",
+        "இந்த அறிக்கை பரிந்துரைத்த மருத்துவமனை",
+        "இந்த அறிக்கை அனுப்புநர் மருத்துவமனை",
+        "அறிகுறிகள் ஏற்பட்டால் உடனடியாக மருத்துவமனை",
+        "அறிகுறிகள் ஏற்பட்டால் அருகிலுள்ள மருத்துவமனை",
+    ),
+    "th": (
+        "บริษัทประกัน",
+        "คลินิกส่งต่อ",
+        "โรงพยาบาลและหน่วยงาน",
+        "โรงพยาบาลและคลินิกพระจันทร์สันติ",
+        "โรงพยาบาลยินดีช่วยประสานต่อให้ค่ะ",
+        "โรงพยาบาลต้นทาง",
+        "โรงพยาบาลตามวันเวลาข้างต้น",
+        "โรงพยาบาลตามวันดังกล่าว",
+        "โรงพยาบาลตามวัน",
+        "โรงพยาบาลตั้งแต่วัน",
+        "โรงพยาบาลค่ะ",
+        "บริษัทประกันภัย",
+        "คลินิกอ้างอิง",
+        "คลินิกอายุรกรรม",
+        "คลินิกสั่งยาภายใต้",
+        "คลินิกปลายทาง",
+        "คลินิกคู่สัญญา",
+    ),
+    "vi": ("viện điều trị 5", "Viện điều trị 5", "Phòng khám 12"),
+    "zh": (
+        "保险公司",
+        "就诊医院",
+        "转诊医院",
+        "分钟到达医院",
+        "请患者携带以下物品前往医院",
+        "请在工作时间联系检验中心",
+        "联系医院",
+        "示例医院",
+        "用于医院",
+        "本消息用于医院",
+        "本消息仅用于医院",
+        "患者保险公司",
+        "开药医院",
+        "并要求核对保险公司",
+        "如有问题请联系医院",
+        "合作医院",
+        "前往医院",
+        "出院后若有不适请及时联系医院",
+        "出院医院",
+        "公立医院",
+        "会诊医院",
+    ),
+}
+"""Deduplicated production-audit captures that are category or functional prose, not identifying organization names. The
+language is part of the lock because organization packs are document-language scoped.
+"""
+
+AUDITED_ORG_KEEP_TEXTS: dict[str, tuple[str, ...]] = {
+    "de": ("Klinik St. Georg",),
+    "en": ("Mountain View General Hospital", "Medcity General Clinic"),
+    "es": (
+        "HOSPITAL SAN VICENTE",
+        "FARMACIA CENTRAL",
+        "Hospital Pueblo",
+        "Hospital General de Madrid",
+        "Hospital Ficticio Santa Aurora",
+        "Clínica San Aurelio",
+        "Clínica Aurora",
+        "Centro Médico Asociado",
+    ),
+    "fil": (
+        "Ospital sa Pilipinas",
+        "Klinika sa Tala",
+        "Klinika ng Luntian",
+        "KLINIKA NG BAYAN MALINIS",
+    ),
+    "fr": (
+        "Laboratoire du Centre Hospitalier Fictif Saint-Lys",
+        "Clinique Saint‑Pierre",
+    ),
+    "id": (
+        "RSUD Kota Bandung",
+        "RSU Bina Sehat Cendana",
+        "Laboratorium Klinik",
+        "Laboratorium Hematologi",
+        "Klinik Utama",
+        "Klinik Sehat",
+        "Klinik Sehat Bersama",
+        "Klinik Medika Sehat",
+    ),
+    "ja": ("聖路加病院", "聖路加国際病院", "東京中央総合病院", "東京中央病院"),
+    "ko": ("서울중앙병원", "서울대병원", "대한병원", "강남대학병원"),
+    "lo": (
+        "ໂຮງພະຍາບານສັດຕາລະນະຄອນ",
+        "ຄລີນິກໂພນສະຫວ່າງ",
+        "ຄລີນິກອາຍຸລະຍາວ",
+        "ຄລີນິກສຸຂະພາບສະບາຍໃຈ",
+    ),
+    "ms": (
+        "Pusat Perubatan Seri Murni",
+        "Pusat Kesihatan Seri Melur",
+        "Pusat Kesihatan Lembah Damai",
+        "Hospital Wawasan Puteri",
+    ),
+    "my": ("ရတနာဆေးရုံ",),
+    "pt": (
+        "Hospital Santa Aurora Ltda",
+        "HOSPITAL SÃO MIGUEL DO VALE",
+        "HOSPITAL FICTÍCIO DAS PALMEIRAS",
+        "HOSPITAL DE CLÍNICAS NOVA LUZ",
+    ),
+    "ta": (
+        "தமிழ்நாடு மருத்துவமனை",
+        "தமிழ் மருத்துவமனை",
+        "சென்னை ஆரோக்கிய மருத்துவமனை",
+    ),
+    "th": (
+        "โรงพยาบาลใจดี",
+        "โรงพยาบาลสมุทรสงคราม",
+        "โรงพยาบาลสมิทธิเวช",
+        "โรงพยาบาลศิริเวชรัตน์",
+        "โรงพยาบาลฟ้าใสเวชการ",
+    ),
+    "vi": (
+        "Trường THPT Nguyễn Du",
+        "Bệnh viện Đa khoa Sao Mai Nội Bộ",
+        "Bệnh viện Đa khoa Hòa An",
+        "Bệnh viện Mắt Sáng Mai",
+        "Bệnh viện Minh Châu",
+        "Bệnh Viện Đa Khoa Sài Gòn",
+    ),
+    "zh": ("和谐医院",),
+}
+"""These no-gold audit captures remain enabled because their text contains an identifying proper-name core. Missing gold
+is not evidence of a false redaction.
+"""
+
+AUDITED_ENGINE_AND_AUTH_FIXTURES: tuple[RegexExpectedFixture, ...] = (
+    RegexExpectedFixture(
+        "audit-id-lowercase-lab-before-rs-permata",
+        "laboratorium RS Permata Nusa",
+        "id",
+        (),
+        "Bare RS is ambiguous, so the precision-first pack accepts its recall cost.",
+    ),
+    RegexExpectedFixture(
+        "audit-id-lowercase-lab-before-rs-nusantara",
+        "laboratorium RS Nusantara Sehat",
+        "id",
+        (),
+        "Bare RS is ambiguous, so the precision-first pack accepts its recall cost.",
+    ),
+    RegexExpectedFixture(
+        "audit-id-lowercase-lab-before-rs-bina",
+        "laboratorium RS Bina Sehat Nusantara",
+        "id",
+        (),
+        "Bare RS is ambiguous, so the precision-first pack accepts its recall cost.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-acronym-period",
+        "công ty ABC. Để",
+        "vi",
+        (("công ty ABC", "company_name"),),
+        "The uppercase acronym closes the organization before sentence prose.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-insurance-acronym-period",
+        "công ty bảo hiểm ABC. Tôi",
+        "vi",
+        (("công ty bảo hiểm ABC", "company_name"),),
+        "The uppercase acronym closes the organization before sentence prose.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-legal-form-acronym-period",
+        "Công ty TNHH ABC. Mọi",
+        "vi",
+        (("Công ty TNHH ABC", "company_name"),),
+        "The uppercase acronym closes the organization before sentence prose.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-electronics-company-tail",
+        "Công ty Điện tử ABC",
+        "vi",
+        (("Công ty Điện tử ABC", "company_name"),),
+        "The lowercase category token is internal to the complete proper name.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-central-lung-hospital-tail",
+        "Bệnh viện Phổi Trung ương",
+        "vi",
+        (("Bệnh viện Phổi Trung ương", "company_name"),),
+        "The audited span was a truncated true organization name.",
+    ),
+    RegexExpectedFixture(
+        "audit-vi-hanoi-hospital-tail",
+        "Bệnh viện Đa khoa Trung ương Hà Nội",
+        "vi",
+        (("Bệnh viện Đa khoa Trung ương Hà Nội", "company_name"),),
+        "A title-cased continuation may close a complete proper name.",
+    ),
+    RegexExpectedFixture(
+        "audit-zh-private-url",
+        "https://portal.xinglan.example.test/patient/RYA-2048?session=tok_8f91A&auth=Qm9uZQ==",
+        "zh",
+        (
+            (
+                "https://portal.xinglan.example.test/patient/RYA-2048?session=tok_8f91A&auth=Qm9uZQ==",
+                "private_url",
+            ),
+        ),
+        "A signed patient URL is PII even when gold omits it.",
+    ),
+    RegexExpectedFixture(
+        "audit-ru-private-url",
+        "https://portal.medexample.test/patient/irina.lebedeva/messages/8831?auth=auth_7mN8p",
+        "ru",
+        (
+            (
+                "https://portal.medexample.test/patient/irina.lebedeva/messages/8831?auth=auth_7mN8p",
+                "private_url",
+            ),
+        ),
+        "A signed patient URL is PII even when gold omits it.",
+    ),
+    RegexExpectedFixture(
+        "audit-es-private-url",
+        "https://resultados.clinica-arboleda.test/ordenes/O-91rn7?token=tok_8O5l-zz&source=app",
+        "es",
+        (
+            (
+                "https://resultados.clinica-arboleda.test/ordenes/O-91rn7?token=tok_8O5l-zz&source=app",
+                "private_url",
+            ),
+        ),
+        "A signed patient URL is PII even when gold omits it.",
+    ),
+    RegexExpectedFixture(
+        "audit-de-private-url",
+        "https://erezepte.krankenkasse.example.net/?token=7962943811",
+        "de",
+        (
+            (
+                "https://erezepte.krankenkasse.example.net/?token=7962943811",
+                "private_url",
+            ),
+        ),
+        "A tokenized prescription URL is PII even when gold omits it.",
+    ),
+    RegexExpectedFixture(
+        "audit-th-secret-in-malformed-url",
+        "token=abc123xyz456]",
+        "th",
+        (("abc123xyz456", "secret"),),
+        "The explicit token remains sensitive despite malformed surrounding URL gold.",
+    ),
+    RegexExpectedFixture(
+        "audit-my-normalized-bearer-token",
+        "Bearer ｔｏｋｅｎ＝ｊ𝟚𝟝𝟟𝟚𝟙𝟚𝟡𝟟𝟛𝟚𝟛𝟙𝟞𝟝",
+        "my",
+        (("ｊ𝟚𝟝𝟟𝟚𝟙𝟚𝟡𝟟𝟛𝟚𝟛𝟙𝟞𝟝", "secret"),),
+        "NFKC reveals an explicitly cued alphanumeric bearer token.",
+    ),
+    RegexExpectedFixture(
+        "audit-ko-parenthesized-duplicate-url",
+        "https://portal.haeon-test.kr/patient/PK-8831?session=st-4f9a&auth=Qm93Lk9r(https://portal.haeon-test.kr/patient/PK-8831?session=st-4f9a&auth=Qm93Lk9r",
+        "ko",
+        (
+            (
+                "https://portal.haeon-test.kr/patient/PK-8831?session=st-4f9a&auth=Qm93Lk9r",
+                "private_url",
+            ),
+            (
+                "https://portal.haeon-test.kr/patient/PK-8831?session=st-4f9a&auth=Qm93Lk9r",
+                "private_url",
+            ),
+        ),
+        "A malformed Markdown duplicate becomes two bounded URLs, never one doubled span.",
+    ),
+)
+
+
+def fixture_manifest() -> dict[str, object]:
+    payload = {
+        "schema_version": 3,
+        "provenance": "synthetic; contains no patient or real-person association",
+        "positive": [asdict(fixture) for fixture in POSITIVE_SELECTION_FIXTURES],
+        "locked_clinical_negatives": [asdict(fixture) for fixture in LOCKED_CLINICAL_NEGATIVES],
+        "language_scoped_locked_negatives": [asdict(fixture) for fixture in LANGUAGE_SCOPED_LOCKED_NEGATIVES],
+        "audited_org_negative_texts": AUDITED_ORG_NEGATIVE_TEXTS,
+        "audited_org_keep_texts": AUDITED_ORG_KEEP_TEXTS,
+        "audited_engine_and_auth": [asdict(fixture) for fixture in AUDITED_ENGINE_AND_AUTH_FIXTURES],
+    }
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return {**payload, "sha256": hashlib.sha256(canonical).hexdigest()}

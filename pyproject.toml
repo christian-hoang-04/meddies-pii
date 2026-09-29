@@ -1,0 +1,519 @@
+[project]
+name = "meddies-pii"
+version = "0.1.0"
+description = "Clinical PII data tooling for offline validation, synthetic generation, and BIOES evaluation."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "google-genai>=2.13.0,<3",
+  "httpx>=0.28",
+  "pandas>=2.3.3",
+  "python-dotenv>=1.2.2",
+  "huggingface_hub>=0.23.2",
+  "datasets>=4.5.0",
+  "modal>=1.5.3",
+  "packaging>=25.0",
+  "tenacity>=9.1.4",
+  "typing-extensions>=4.15.0",
+]
+
+[project.optional-dependencies]
+pdf-redaction = [
+  "numpy>=2.0,<3",
+  "openvino==2026.1.0",
+  "pillow==12.3.0",
+  "pypdf==6.15.0",
+  "pypdfium2==5.12.1",
+  "rapidocr==3.9.2",
+  "reportlab==5.0.0",
+  "transformers==5.14.1",
+]
+training = [
+  "onnx==1.22.0",
+  "onnxruntime==1.28.0",
+  "peft>=0.19.1",
+  "torch>=2.13.0,<2.14",
+  "transformers==5.14.1",
+]
+
+[project.scripts]
+meddies-pii = "meddies_pii.cli:main"
+
+[dependency-groups]
+dev = [
+  "basedpyright>=1.39.9",
+  "faker>=40.36.0",
+  "hypothesis>=6.150.3",
+  "meddies-pii[pdf-redaction,training]",
+  "mypy>=2.3.0",
+  "onnx-ir==0.2.1",
+  "pandas-stubs>=3.0.3.260530",
+  "pytest>=9.0.3,<10",
+  "pytest-cov>=7.0.0",
+  "pymupdf==1.28.0",
+  "respx>=0.22",
+  "ruff>=0.16.0",
+]
+security = [
+  "bandit==1.9.4",
+]
+
+[tool.deptry.per_rule_ignores]
+# These four are reached through `importlib.import_module` or, for openvino, as the runtime
+# backend rapidocr loads by name, so no static scan can see the use. The declarations are real;
+# only the evidence of use is invisible.
+DEP002 = ["openvino", "pypdfium2", "rapidocr", "reportlab"]
+# `build_mixed_50_20_30` is the sibling migration script beside its importer, first-party by
+# construction. It cannot ride `known_first_party`: the gate passes `--known-first-party` on the
+# command line, and that replaces this file's list rather than extending it.
+#
+# The rest are container-side imports that never run in this project's own environment.
+#
+# Six are already declared and version-pinned in the `pip_install` package list of the very module
+# that imports them: `unsloth==2026.7.4` and `pyarrow==23.0.0` in the training image lists, and
+# `safetensors==0.8.0`, `onnx==1.22.0`, `onnxruntime==1.28.0` and `cryptography==49.0.0` in the ops
+# script images. The declaration is real; deptry reads the manifest, not a Modal image spec.
+#
+# `pynvml` is the exception and is pinned nowhere. It reads GPU telemetry from the NVIDIA driver
+# stack present in a CUDA container, and every use sits inside `try: ... except Exception: return`,
+# so its absence degrades to no telemetry rather than a failure. Pinning it would claim a
+# dependency the code is written not to need.
+#
+# Declaring any of them as project dependencies would be false — the installed package needs none
+# of them to run locally — and `unsloth` publishes no macOS wheel, so it would break `uv sync` here.
+DEP001 = [
+  "build_mixed_50_20_30",
+  "cryptography",
+  "onnx",
+  "onnxruntime",
+  "pyarrow",
+  "pynvml",
+  "safetensors",
+  "unsloth",
+]
+# `pymupdf` is AGPL and stays out of the permissive `pdf-redaction` extra, which
+# `test_pdf_redaction_extra_is_runtime_complete_and_permissive` pins. `risk.py` imports it for the
+# rendered-state signal pypdf cannot give, so the import is real and the dev-group home is the
+# licensing decision, not a misplacement.
+DEP004 = ["pymupdf"]
+
+[tool.deptry.package_module_name_map]
+google-genai = ["google"]
+pillow = ["PIL"]
+python-dotenv = ["dotenv"]
+
+[tool.typos.default.extend-words]
+# Project vocabulary: language codes, foreign-language surfaces the multilingual corpus
+# carries, Vietnamese names, product names, and the deliberately misspelled label aliases
+# the generator has to accept. Each is spelled the way the domain spells it.
+addres = "addres" # deliberate misspelled label alias the generator must accept
+adresse = "adresse" # German/Danish 'address' in a multilingual PII prompt example
+alikes = "alikes" # 'look-alikes' hyphen split by the tokenizer
+arange = "arange" # numpy.arange
+ba = "ba" # Vietnamese digit word 'ba' (three) in a spoken-number test surface
+cpy = "cpy" # Ruff's CPY rule-family prefix in the tracked strict configuration
+dezember = "dezember" # German month name in a date-surface pattern
+ehr = "ehr" # electronic health record
+espace = "espace" # French 'espace' in a multilingual surface
+februar = "februar" # German month name in a date-surface pattern
+fo = "fo" # fixture token
+fonction = "fonction" # French 'fonction' in a multilingual surface
+fre = "fre" # ISO 639-2 code for French
+groupe = "groupe" # French 'group' in an organization-name cue
+hospitales = "hospitales" # Spanish 'hospitales' in a multilingual surface
+instituto = "instituto" # Spanish/Portuguese 'institute' in organization-name cues
+ist = "ist" # German 'is' in language-identification and clinical-prose fixtures
+iy = "iy" # fixture token
+januar = "januar" # German month name in a date-surface pattern
+juli = "juli" # German/Dutch month name in a date-surface pattern
+juni = "juni" # German/Dutch month name in a date-surface pattern
+ket = "ket" # unaccented Vietnamese 'ket' (link) in an adversarial URL fixture
+mis = "mis" # 'mis-extracted' hyphen split by the tokenizer
+nam = "nam" # Vietnamese given name, and a deliberate misspelled label alias
+nd = "nd" # ISO 639 code for Ndebele
+numbe = "numbe" # deliberate misspelled label alias the generator must accept
+oktober = "oktober" # German/Dutch month name in a date-surface pattern
+opf = "opf" # OPF, the baseline model this repository evaluates against
+ot = "ot" # fixture token
+pn = "pn" # fixture token
+pont = "pont" # French 'bridge' in the proper name Pont-Neuf
+profesional = "profesional" # Spanish 'profesional' in a multilingual surface
+sur = "sur" # French 'on' in a clinical organization negative cue
+tha = "tha" # ISO 639-2 code for Thai
+tham = "tham" # Vietnamese 'tham chieu' (reference) in a lab-range negative fixture
+thay = "thay" # Vietnamese 'thay the' (replace) in the translation prompt
+unparseable = "unparseable" # standard spelling in this codebase's error vocabulary
+vor = "vor" # German 'present' in a clinical organization fixture
+# The dead-code scan cannot see four kinds of live name, so the project declares them.
+# Most are class-level annotated fields — dataclass, TypedDict, and Protocol members — which are
+# part of a declared type's shape and are reached by construction and serialization, never by a
+# name lookup the scan can follow. The rest are attributes set on test doubles so the code under
+# test sees the shape the real object has, Protocol classes that exist to be structurally
+# satisfied rather than referenced, and functions invoked through framework registration
+# decorators. Every entry and decorator was checked against its declaration site.
+[tool.vulture]
+ignore_names = [
+  "AI4PRIVACY_NAME_LABELS",
+  "APIError",
+  "AbstractContextManager",
+  "Base230UnslothProbe",
+  "CostLedger",
+  "DummyBackbone",
+  "DummyTokenizer",
+  "FullRunContract",
+  "NEMOTRON_NAME_LABELS",
+  "REQUIRED_PRIVATE_LABELS",
+  "ReadOnlyRecord",
+  "RedactionPolicy",
+  "TypedModalApp",
+  "_DualViewSpacePiiDetector",
+  "_MutableWidget",
+  "_NvmlModule",
+  "_PdfiumImageObject",
+  "_PdfiumRawModule",
+  "_PdfiumTextObject",
+  "_ReportLabCanvasModule",
+  "_ReportLabImageModule",
+  "_WidgetLike",
+  "_attn_implementation",
+  "_disable_adapters",
+  "_is_subsumed",
+  "_lora_grad_signal_by_target",
+  "_no_jitter",
+  "_no_rate_limit",
+  "_open_pypdf",
+  "_pipeline_outputs_to_spans",
+  "active_tokens_per_second_end_to_end",
+  "active_tokens_per_second_model_only",
+  "add_elapsed",
+  "alpha_to_rank",
+  "anchor_batch",
+  "anyio_backend",
+  "attention_implementation",
+  "artifact_type",
+  "backbone_class",
+  "benchmark_role",
+  "bf16",
+  "blinded_corpus_manifest_sha256",
+  "blocking_failures",
+  "build_entry",
+  "causal_conv1d_package_version",
+  "chars",
+  "child_evidence_sha256s",
+  "cold_steps",
+  "compared_tokens",
+  "containment_agree_precision",
+  "containment_agree_recall",
+  "containment_span_prf",
+  "convert_legacy_rows_to_pii_labels",
+  "cpu_preflight",
+  "cross_out",
+  "cuda_memory",
+  "dispatch_dry_run",
+  "draw_annots",
+  "edge_coverage",
+  "environment_fingerprint_sha256",
+  "eval_adversarial_slices",
+  "eval_containment_adversarial_slices",
+  "eval_containment_span_f1",
+  "eval_containment_span_f1_delta",
+  "eval_containment_span_precision",
+  "eval_containment_span_recall",
+  "eval_containment_span_typed",
+  "eval_containment_span_untyped",
+  "eval_containment_span_untyped_f1",
+  "eval_containment_span_untyped_minus_typed",
+  "eval_containment_span_untyped_precision",
+  "eval_containment_span_untyped_recall",
+  "eval_dataset_identity",
+  "eval_exact_span_f1",
+  "eval_exact_span_f1_delta",
+  "eval_exact_span_precision",
+  "eval_exact_span_recall",
+  "eval_exact_span_typed",
+  "eval_exact_span_untyped",
+  "eval_exact_span_untyped_f1",
+  "eval_exact_span_untyped_minus_typed",
+  "eval_exact_span_untyped_precision",
+  "eval_exact_span_untyped_recall",
+  "eval_examples",
+  "eval_max_memory_allocated_mb",
+  "eval_max_memory_reserved_mb",
+  "eval_opf_adversarial_slices",
+  "eval_opf_span_f1",
+  "eval_opf_span_precision",
+  "eval_opf_span_recall",
+  "eval_opf_span_typed",
+  "eval_opf_span_untyped",
+  "eval_opf_span_untyped_f1",
+  "eval_opf_span_untyped_minus_typed",
+  "eval_opf_span_untyped_precision",
+  "eval_opf_span_untyped_recall",
+  "eval_row_hashes",
+  "eval_row_uids",
+  "eval_token_lengths",
+  "exact_agree_precision",
+  "exact_agree_recall",
+  "exc_type",
+  "execution_mode",
+  "feed_forward",
+  "field_name",
+  "field_type",
+  "final_train_loss",
+  "find_spec",
+  "first_train_loss",
+  "flash_attention_2",
+  "full9_gold_spans",
+  "geometry_precision",
+  "gpu_name",
+  "gradients_seen",
+  "graph_optimization_level",
+  "in_proj",
+  "initial_eval_containment_span_f1",
+  "initial_eval_containment_span_precision",
+  "initial_eval_containment_span_recall",
+  "initial_eval_containment_span_untyped_f1",
+  "initial_eval_containment_span_untyped_precision",
+  "initial_eval_containment_span_untyped_recall",
+  "initial_eval_exact_span_f1",
+  "initial_eval_exact_span_precision",
+  "initial_eval_exact_span_recall",
+  "initial_eval_exact_span_untyped_f1",
+  "initial_eval_exact_span_untyped_precision",
+  "initial_eval_exact_span_untyped_recall",
+  "input_dtype",
+  "input_shape",
+  "inter_op_num_threads",
+  "intra_op_num_threads",
+  "invariant",
+  "is_acceptable_default",
+  "is_structure_capture",
+  "june_baseline_deviations",
+  "k_proj",
+  "kernels",
+  "label_distribution",
+  "lora_dropout",
+  "labeled_tokens_per_second_end_to_end",
+  "labeled_tokens_per_second_model_only",
+  "list_of_maps_at",
+  "load_adapter",
+  "load_in_16bit",
+  "max_containers",
+  "max_estimated_cost_usd",
+  "max_memory_allocated_mb",
+  "max_memory_reserved_mb",
+  "max_norm_error",
+  "max_rel_error",
+  "may_draw_forms",
+  "mean_host_prep_time_s",
+  "mean_model_step_time_s",
+  "mean_padding_ratio",
+  "mean_profiled_model_step_time_s",
+  "mean_profiled_total_step_time_s",
+  "mean_total_step_time_s",
+  "mean_train_loss",
+  "measured_step_times_s",
+  "measured_steps",
+  "measured_total_time_s",
+  "median_total_step_time_s",
+  "modal_app",
+  "model_class",
+  "native_locator",
+  "notes",
+  "oom_fallback",
+  "opacity",
+  "operator_family_totals_by_cpu_time",
+  "operator_family_totals_by_cuda_time",
+  "optimizer_steps",
+  "option",
+  "original_errors",
+  "out_proj",
+  "package_versions",
+  "packed_configs",
+  "packed_dataset",
+  "packing_max_length",
+  "pad_strategy",
+  "padded_tokens_per_second_end_to_end",
+  "padded_tokens_per_second_model_only",
+  "padding_token_count",
+  "pageCompression",
+  "pagesize",
+  "parameter_dtypes",
+  "pareto_frontier",
+  "peft_config",
+  "pii_runtime",
+  "pixel_count",
+  "primary_metric",
+  "private_fixture",
+  "probe_lanes",
+  "probe_protocol",
+  "profiled_step_times_s",
+  "profiled_total_time_s",
+  "profiler_activities",
+  "profiler_artifact_format",
+  "profiler_artifact_root",
+  "profiler_metadata_path",
+  "profiler_trace_bytes",
+  "profiler_trace_path",
+  "profiler_trace_sha256",
+  "q_proj",
+  "raw_attempt_count",
+  "raw_chars",
+  "recurse",
+  "rejection_distribution",
+  "regex_span",
+  "release_corpus_manifest_sha256",
+  "remaining_usd",
+  "repair_applied",
+  "repair_changed",
+  "resolved_module_count",
+  "result_id",
+  "resume_adapter",
+  "return_dict",
+  "return_offsets_mapping",
+  "return_tensors",
+  "rev_byteorder",
+  "run_aggregate",
+  "run_aggregate_gliner2",
+  "run_aggregate_lfm",
+  "run_aggregate_openmed",
+  "run_aggregate_opf",
+  "run_gliner2_matrix",
+  "run_inspect_external",
+  "run_inspect_gliner2",
+  "run_inspect_opf",
+  "run_lfm_matrix",
+  "run_matrix",
+  "run_native_parity",
+  "run_onnx",
+  "run_openmed_matrix",
+  "run_opf_matrix",
+  "runtime_precision",
+  "sample_urls",
+  "scan_locator",
+  "scenario_distribution",
+  "schema_version",
+  "selected_row_hashes",
+  "selected_row_uids",
+  "selected_token_lengths",
+  "selection_strategy",
+  "set_to_none",
+  "side_effect",
+  "skipped_empty_label_json",
+  "skipped_label_mismatch",
+  "skipped_label_repairs",
+  "skipped_missing_label_json",
+  "stroke",
+  "support_docs",
+  "support_gold_spans",
+  "support_predicted_spans",
+  "swiglu",
+  "targeted_eval",
+  "tb",
+  "text_slice",
+  "token_cap_per_account",
+  "top_ops_by_cpu_time",
+  "top_ops_by_cuda_time",
+  "torch_compile",
+  "train_loss_delta",
+  "train_row_hashes",
+  "train_row_uids",
+  "trainable_parameter_count",
+  "trainable_params",
+  "use_cache",
+  "use_gradient_checkpointing",
+  "v_proj",
+  "valid_pii",
+  "validate_page_indices",
+  "vrm_occupancy",
+  "warmup_step_times_s",
+  "warmup_total_time_s",
+  "workload_identity",
+  "workload_manifest_id",
+  "w1",
+  "w2",
+  "w3",
+  "y0_px",
+  "y1_px",
+]
+ignore_decorators = [
+  "@app.local_entrypoint",
+  "@pytest.fixture",
+]
+[tool.pytest.ini_options]
+# Default gates cover all repository tests.
+testpaths = ["tests"]
+norecursedirs = [
+  ".*",
+  "build",
+  "dist",
+  "CVS",
+  "_darcs",
+  "{arch}",
+  "*.egg",
+  "venv",
+  ".venv",
+  ".hypothesis",
+]
+
+[tool.coverage.report]
+# training/ is a namespace package, so coverage must inventory its unexecuted files.
+include_namespace_packages = true
+
+[tool.ruff]
+# Align the repository's own Ruff config with the adopted lintmax gate so per-edit tooling and the
+# gate format identically. Without this Ruff falls back to its default 88 while the gate formats at
+# 123, and every editor-side or hook-side `ruff format` rewraps files the gate then reports as
+# unformatted.
+line-length = 123
+# Align repo ruff with the gate: preview formatting and rule-name suppressions are the gate's
+# dialect. The gate materializes `preview = true`, so without this the stable-style formatter here
+# un-hugs the braces the gate hugs (132 files disagreed), and RUF102 reads every
+# `# ruff: ignore[<rule-name>]` directive as an invalid rule code -- which is what let a hook-side
+# fix delete them.
+preview = true
+
+[tool.ruff.lint]
+# Keep lint policy explicit so Ruff releases cannot silently change repository scope.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+pretty = true
+show_error_codes = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["datasets", "datasets.*"]
+ignore_missing_imports = true
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+exclude = [".venv"]
+
+[tool.uv]
+# Security floors for vulnerable transitive dependencies. They preserve the
+# existing direct dependency interfaces while keeping future lock refreshes
+# above the audited fixed versions.
+constraint-dependencies = [
+  "aiohttp>=3.14.1,<4",
+  "cbor2>=5.9.0,<6",
+  "click>=8.3.3,<9",
+  "filelock>=3.20.3,<4",
+  "idna>=3.15,<4",
+  "pyarrow>=23.0.1,<24",
+  "pyasn1>=0.6.4,<0.7",
+  "pygments>=2.20.0,<3",
+  "requests>=2.33.0,<3",
+  "setuptools>=83.0.0,<84",
+  "urllib3>=2.7.0,<3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/coverage.json", "/coverage.xml"]

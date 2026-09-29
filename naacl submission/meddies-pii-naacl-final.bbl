@@ -1,0 +1,259 @@
+\begin{thebibliography}{34}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Agarwal et~al.(2025)Agarwal, Ahmad, Ai, Altman, Applebaum, Arbus,
+  Arora, Bai, Baker, Bao et~al.}]{agarwal2025gpt}
+Sandhini Agarwal, Lama Ahmad, Jason Ai, Sam Altman, Andy Applebaum, Edwin
+  Arbus, Rahul~K Arora, Yu~Bai, Bowen Baker, Haiming Bao, et~al. 2025.
+\newblock {gpt-oss-120b} \& {gpt-oss-20b} model card.
+\newblock \emph{arXiv preprint arXiv:2508.10925}.
+
+\bibitem[{AI(2024)}]{gretel-pii-docs-en-v1}
+Gretel AI. 2024.
+\newblock Gliner models for pii detection through fine-tuning on
+  gretel-generated synthetic documents.
+
+\bibitem[{{Ai4Privacy}(2026)}]{ai4privacy_openpii_1_5m_2026}
+{Ai4Privacy}. 2026.
+\newblock \href
+  {https://huggingface.co/datasets/ai4privacy/pii-masking-openpii-1.5m}
+  {{OpenPII 1.5M: Multilingual PII Masking Dataset with Asia Pacific
+  Extension}}.
+\newblock Hugging Face dataset.
+\newblock Accessed: 2026-07-25.
+
+\bibitem[{Baroud et~al.(2026)Baroud, Otto, Czehmann, Hovhannisyan, Raithel,
+  M{\"o}ller, and Roller}]{baroud2026multigrascco}
+Ibrahim Baroud, Christoph Otto, Vera Czehmann, Christine Hovhannisyan, Lisa
+  Raithel, Sebastian M{\"o}ller, and Roland Roller. 2026.
+\newblock Multigrascco: A multilingual anonymization benchmark with annotations
+  of personal identifiers.
+\newblock \emph{arXiv preprint arXiv:2603.08879}.
+
+\bibitem[{de~Gibert et~al.(2022)de~Gibert, Garc{\'i}a-Pablos, Cuadros, and
+  Melero}]{de-gibert-bonet-etal-2022-spanish}
+Ona de~Gibert, Aitor Garc{\'i}a-Pablos, Montse Cuadros, and Maite Melero. 2022.
+\newblock \href {https://aclanthology.org/2022.lrec-1.400/} {{S}panish datasets
+  for sensitive entity detection in the legal domain}.
+\newblock In \emph{Proceedings of the Thirteenth Language Resources and
+  Evaluation Conference}, pages 3751--3760, Marseille, France. European
+  Language Resources Association.
+
+\bibitem[{{DeepSeek-AI}(2026)}]{deepseekai2026v4flash}
+{DeepSeek-AI}. 2026.
+\newblock \href {https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash}
+  {{DeepSeek-V4-Flash} model card}.
+\newblock Hugging Face model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{Deleger et~al.(2014)Deleger, Lingren, Ni, Kaiser, Stoutenborough,
+  Marsolo, Kouril, Molnar, and Solti}]{deleger2014preparing}
+Louise Deleger, Todd Lingren, Yizhao Ni, Megan Kaiser, Laura Stoutenborough,
+  Keith Marsolo, Michal Kouril, Katalin Molnar, and Imre Solti. 2014.
+\newblock Preparing an annotated gold standard corpus to share with extramural
+  investigators for de-identification research.
+\newblock \emph{Journal of biomedical informatics}, 50:173--183.
+
+\bibitem[{Devlin et~al.(2019)Devlin, Chang, Lee, and
+  Toutanova}]{devlin2019bert}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019.
+\newblock {BERT}: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock In \emph{Proceedings of the 2019 Conference of the North American
+  Chapter of the Association for Computational Linguistics: Human Language
+  Technologies}, pages 4171--4186, Minneapolis, Minnesota. Association for
+  Computational Linguistics.
+
+\bibitem[{Eberts and Ulges(2019)}]{eberts2019span}
+Markus Eberts and Adrian Ulges. 2019.
+\newblock Span-based joint entity and relation extraction with transformer
+  pre-training.
+\newblock \emph{arXiv preprint arXiv:1909.07755}.
+
+\bibitem[{{Google DeepMind}(2026)}]{googledeepmind2026gemini35flash}
+{Google DeepMind}. 2026.
+\newblock \href {https://deepmind.google/models/model-cards/gemini-3-5-flash/}
+  {Gemini 3.5 flash model card}.
+\newblock Model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{Grouin and N{\'e}v{\'e}ol(2014)}]{grouin2014identification}
+Cyril Grouin and Aur{\'e}lie N{\'e}v{\'e}ol. 2014.
+\newblock De-identification of clinical notes in french: towards a protocol for
+  reference corpus development.
+\newblock \emph{Journal of biomedical informatics}, 50:151--161.
+
+\bibitem[{{International Organization for Standardization and International
+  Electrotechnical Commission}(2024)}]{iso29100-2024}
+{International Organization for Standardization and International
+  Electrotechnical Commission}. 2024.
+\newblock Information technology---security techniques---privacy framework.
+\newblock International Standard ISO/IEC 29100:2024, ISO/IEC.
+
+\bibitem[{Lester et~al.(2020)Lester, Pressel, Hemmeter, Ray~Choudhury, and
+  Bangalore}]{lester-etal-2020-constrained}
+Brian Lester, Daniel Pressel, Amy Hemmeter, Sagnik Ray~Choudhury, and Srinivas
+  Bangalore. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.findings-emnlp.166}
+  {Constrained decoding for computationally efficient named entity recognition
+  taggers}.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  EMNLP 2020}, pages 1841--1848, Online. Association for Computational
+  Linguistics.
+
+\bibitem[{{Liquid AI}(2026)}]{liquidai2026lfm25pii}
+{Liquid AI}. 2026.
+\newblock \href
+  {https://huggingface.co/LiquidAI/LFM2.5-Encoder-350M-PII-Detector}
+  {{LFM2.5-Encoder-350M-PII-Detector}}.
+\newblock Hugging Face model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{{Meta AI}(2024)}]{meta2024llama33}
+{Meta AI}. 2024.
+\newblock \href {https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct}
+  {Llama 3.3 70b instruct model card}.
+\newblock Hugging Face model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{{MiniMax}(2026)}]{minimax2026m3}
+{MiniMax}. 2026.
+\newblock \href {https://www.minimax.io/models/text/m3} {{MiniMax M3} model
+  card}.
+\newblock Model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{{Mistral AI}(2025)}]{mistralai2025mistralmedium3}
+{Mistral AI}. 2025.
+\newblock \href
+  {https://docs.mistral.ai/models/model-cards/mistral-medium-3-25-05} {Mistral
+  medium 3 model card}.
+\newblock Model card.
+\newblock Accessed: 2026-08-04.
+
+\bibitem[{Modersohn et~al.(2022)Modersohn, Schulz, Lohr, and
+  Hahn}]{modersohn2022grascco}
+Luise Modersohn, Stefan Schulz, Christina Lohr, and Udo Hahn. 2022.
+\newblock Grascco—the first publicly shareable, multiply-alienated german
+  clinical text corpus.
+\newblock In \emph{German Medical Data Sciences 2022--Future Medicine: More
+  Precise, More Integrative, More Sustainable!}, pages 66--72. IOS Press.
+
+\bibitem[{Neamatullah et~al.(2008)Neamatullah, Douglass, Lehman, Reisner,
+  Villarroel, Long, Szolovits, Moody, Mark, and
+  Clifford}]{neamatullah2008automated}
+Ishna Neamatullah, Margaret~M Douglass, Li-Wei~H Lehman, Andrew Reisner,
+  Mauricio Villarroel, William~J Long, Peter Szolovits, George~B Moody, Roger~G
+  Mark, and Gari~D Clifford. 2008.
+\newblock Automated de-identification of free-text medical records.
+\newblock \emph{BMC medical informatics and decision making}, 8(1):32.
+
+\bibitem[{{OpenAI}(2026)}]{openai2026privacyfilter}
+{OpenAI}. 2026.
+\newblock Introducing openai privacy filter.
+\newblock \url{https://openai.com/index/introducing-openai-privacy-filter/}.
+\newblock Accessed: 2026-07-22.
+
+\bibitem[{Savkin et~al.(2025)Savkin, Ionov, and
+  Konovalov}]{savkin-etal-2025-spy}
+Maksim Savkin, Timur Ionov, and Vasily Konovalov. 2025.
+\newblock \href {https://doi.org/10.18653/v1/2025.naacl-srw.23} {{SPY}:
+  Enhancing privacy with synthetic {PII} detection dataset}.
+\newblock In \emph{Proceedings of the 2025 Conference of the Nations of the
+  Americas Chapter of the Association for Computational Linguistics: Human
+  Language Technologies (Volume 4: Student Research Workshop)}, pages 236--246,
+  Albuquerque, USA. Association for Computational Linguistics.
+
+\bibitem[{Science(2026)}]{openmed-pii-2026}
+OpenMed Science. 2026.
+\newblock \href
+  {https://huggingface.co/openmed/OpenMed-PII-SuperClinical-Large-434M-v1}
+  {Openmed-pii-superclinical-large-434m-v1: Pii detection model}.
+
+\bibitem[{Souza et~al.(2019)Souza, Nogueira, and Lotufo}]{souza2019portuguese}
+F{\'a}bio Souza, Rodrigo Nogueira, and Roberto Lotufo. 2019.
+\newblock Portuguese named entity recognition using {BERT}-{CRF}.
+\newblock arXiv preprint arXiv:1909.10649.
+
+\bibitem[{Steier et~al.(2025)Steier, Manoel, Haushalter, and
+  Segbroeck}]{nemotron-pii}
+Amy Steier, Andre Manoel, Alexa Haushalter, and Maarten~Van Segbroeck. 2025.
+\newblock \href {https://huggingface.co/datasets/nvidia/Nemotron-PII}
+  {Nemotron-pii: Synthesized data for privacy-preserving ai}.
+
+\bibitem[{Stubbs et~al.(2015)Stubbs, Kotfila, and Uzuner}]{stubbs2015automated}
+Amber Stubbs, Christopher Kotfila, and {\"O}zlem Uzuner. 2015.
+\newblock Automated systems for the de-identification of longitudinal clinical
+  narratives: Overview of 2014 i2b2/uthealth shared task track 1.
+\newblock \emph{Journal of biomedical informatics}, 58:S11--S19.
+
+\bibitem[{Uzuner et~al.(2007)Uzuner, Luo, and Szolovits}]{uzuner2007evaluating}
+{\"O}zlem Uzuner, Yuan Luo, and Peter Szolovits. 2007.
+\newblock Evaluating the state-of-the-art in automatic de-identification.
+\newblock \emph{Journal of the American Medical Informatics Association},
+  14(5):550--563.
+
+\bibitem[{Xi et~al.(2025)Xi, Kong, Yang, Yang, Chen, Wang, Wang, Cai, Zhang,
+  and Ye}]{xi-etal-2025-samplemix}
+Xiangyu Xi, Deyang Kong, Jian Yang, Jiawei Yang, Zhengyu Chen, Wei Wang,
+  Jingang Wang, Xunliang Cai, Shikun Zhang, and Wei Ye. 2025.
+\newblock \href {https://doi.org/10.18653/v1/2025.findings-emnlp.741}
+  {{S}ample{M}ix: A sample-wise pre-training data mixing strategy by
+  coordinating data quality and diversity}.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  EMNLP 2025}, pages 13736--13758, Suzhou, China. Association for Computational
+  Linguistics.
+
+\bibitem[{Xiao et~al.(2026)Xiao, Xia, Yang, Gao, Shen, Zhang, He, Lou, Luo,
+  Wang et~al.}]{xiao2026mimo}
+Bangjun Xiao, Bingquan Xia, Bo~Yang, Bofei Gao, Bowen Shen, Chen Zhang,
+  Chenhong He, Chiheng Lou, Fuli Luo, Gang Wang, et~al. 2026.
+\newblock {MiMo-V2-Flash} technical report.
+\newblock \emph{arXiv preprint arXiv:2601.02780}.
+
+\bibitem[{Yang et~al.(2025)Yang, Li, Yang, Zhang, Hui, Zheng, Yu, Gao, Huang,
+  Lv et~al.}]{yang2025qwen3}
+An~Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo~Zheng, Bowen
+  Yu, Chang Gao, Chengen Huang, Chenxu Lv, et~al. 2025.
+\newblock {Qwen3} technical report.
+\newblock \emph{arXiv preprint arXiv:2505.09388}.
+
+\bibitem[{Yu et~al.(2023)Yu, Zhuang, Zhang, Meng, Ratner, Krishna, Shen, and
+  Zhang}]{yu2023large}
+Yue Yu, Yuchen Zhuang, Jieyu Zhang, Yu~Meng, Alexander~J Ratner, Ranjay
+  Krishna, Jiaming Shen, and Chao Zhang. 2023.
+\newblock Large language model as attributed training data generator: A tale of
+  diversity and bias.
+\newblock \emph{Advances in neural information processing systems},
+  36:55734--55784.
+
+\bibitem[{Yun et~al.(2021)Yun, Choi, Lee, Sokol, Shim, Melkonyan, and
+  Kuzmenko}]{sr-cred21}
+JaeKu Yun, ShinHyung Choi, YuJeong Lee, Oleksandra Sokol, WooChul Shim, Arkadiy
+  Melkonyan, and Dmytro Kuzmenko. 2021.
+\newblock Project creddata: A dataset of credentials for research.
+\newblock \url{https://github.com/Samsung/CredData}.
+
+\bibitem[{Zaratiana et~al.(2025)Zaratiana, Pasternak, Boyd, Hurn-Maloney, and
+  Lewis}]{zaratiana2025gliner2efficientmultitaskinformation}
+Urchade Zaratiana, Gil Pasternak, Oliver Boyd, George Hurn-Maloney, and Ash
+  Lewis. 2025.
+\newblock \href {https://arxiv.org/abs/2507.18546} {Gliner2: An efficient
+  multi-task information extraction system with schema-driven interface}.
+\newblock \emph{Preprint}, arXiv:2507.18546.
+
+\bibitem[{Zaratiana et~al.(2023)Zaratiana, Tomeh, Holat, and
+  Charnois}]{zaratiana2023gliner}
+Urchade Zaratiana, Nadi Tomeh, Pierre Holat, and Thierry Charnois. 2023.
+\newblock Gliner: Generalist model for named entity recognition using
+  bidirectional transformer.
+\newblock \emph{arXiv preprint arXiv:2311.08526}.
+
+\bibitem[{Zeng et~al.(2025)Zeng, Lv, Zheng, Hou, Chen, Xie, Wang, Yin, Zeng,
+  Zhang et~al.}]{zeng2025glm}
+Aohan Zeng, Xin Lv, Qinkai Zheng, Zhenyu Hou, Bin Chen, Chengxing Xie, Cunxiang
+  Wang, Da~Yin, Hao Zeng, Jiajie Zhang, et~al. 2025.
+\newblock {GLM}-4.5: Agentic, reasoning, and coding ({ARC}) foundation models.
+\newblock \emph{arXiv preprint arXiv:2508.06471}.
+
+\end{thebibliography}
