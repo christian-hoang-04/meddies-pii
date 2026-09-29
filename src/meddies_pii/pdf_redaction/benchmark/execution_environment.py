@@ -6,13 +6,14 @@ import importlib.metadata
 import math
 import os
 import platform
-import resource
 
 # reason: environment capture runs fixed version probes as list-form argv; it never processes document text as a command.
 import subprocess  # ruff: ignore[suspicious-subprocess-import]
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from meddies_pii.runtime_memory import peak_rss_bytes
 
 if TYPE_CHECKING:
     from pypdf.generic import RectangleObject
@@ -197,12 +198,7 @@ def _tool_version(command: tuple[str, ...]) -> str:
 
 
 def _peak_rss_bytes() -> int:
-    try:
-        value = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-    except (ImportError, ValueError):
-        return 1
-    multiplier = 1 if sys.platform == "darwin" else 1024
-    return max(1, value * multiplier)
+    return peak_rss_bytes()
 
 
 def _current_rss_bytes() -> int:

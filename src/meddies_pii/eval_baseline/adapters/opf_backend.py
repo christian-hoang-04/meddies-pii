@@ -7,7 +7,6 @@ from __future__ import annotations
 # reason: checkpoint, a wrong profile, a malformed launch contract - so TypeError would misdescribe it. The
 # reason: same function raises this type from non-isinstance guards too; splitting on the guard shape would
 # reason: make one failure class signal two exception types.
-import fcntl
 import importlib
 import json
 import math
@@ -24,6 +23,7 @@ from meddies_pii.eval_baseline.adapters.opf_windowing import (
     pack_token_windows,
 )
 from meddies_pii.evaluation.identity import checkpoint_tree_artifact
+from meddies_pii.file_locks import exclusive_file_lock
 from meddies_pii.spans import CharSpan
 
 if TYPE_CHECKING:
@@ -185,12 +185,8 @@ def _cache_manifest_path(target: Path) -> Path:
 @contextmanager
 def _checkpoint_cache_lock(target: Path) -> Iterator[None]:
     lock_path = target.with_name(f"{target.name}{_CACHE_LOCK_SUFFIX}")
-    with lock_path.open("a+", encoding="utf-8") as lock_file:
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+    with exclusive_file_lock(lock_path):
+        yield
 
 
 def apply_native_env(config: NativePredictorConfig) -> None:

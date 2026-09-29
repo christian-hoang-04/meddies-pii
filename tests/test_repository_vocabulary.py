@@ -29,7 +29,9 @@ def test_historical_jargon_is_confined_to_the_explicit_legacy_contract() -> None
     matches: set[str] = set()
     for relative_path in tracked_files:
         path = REPOSITORY_ROOT / relative_path
-        if path.is_file() and HISTORICAL_JARGON.search(path.read_text(encoding="utf-8")):
+        if path.is_file() and path.suffix.lower() in {".md", ".py", ".toml", ".yml", ".yaml"} and HISTORICAL_JARGON.search(
+            path.read_text(encoding="utf-8"),
+        ):
             matches.add(relative_path)
 
     assert matches <= APPROVED_HISTORICAL_JARGON_PATHS

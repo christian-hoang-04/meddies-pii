@@ -21,10 +21,10 @@ linked arXiv record is the associated preprint.
 
 | Resource | Link |
 | --- | --- |
-| Paper PDF | [`naacl submission/meddies-pii-naacl-final.pdf`](naacl%20submission/meddies-pii-naacl-final.pdf) |
-| LaTeX source | [`naacl submission/meddies-pii-naacl-final.tex`](naacl%20submission/meddies-pii-naacl-final.tex) |
+| Paper PDF | [`paper/meddies-pii-naacl-final.pdf`](paper/meddies-pii-naacl-final.pdf) |
+| LaTeX source | [`paper/meddies-pii-naacl-final.tex`](paper/meddies-pii-naacl-final.tex) |
 | arXiv preprint | [arXiv:2609.12544](https://arxiv.org/abs/2609.12544) |
-| Paper assets | [`naacl submission/`](naacl%20submission/) |
+| Paper assets | [`paper/`](paper/) |
 
 The paper presents a synthetic clinical PII corpus with one million documents
 across seventeen languages and a nine-label ontology. Attribute-conditioned
@@ -58,10 +58,16 @@ or regulatory compliance.
 
 ```text
 src/meddies_pii/             Package implementation and CLI
+src/meddies_pii/eval_baseline/
+    baseline/                Shared evaluation harness and aggregation
+    adapters/                Model adapters
+    regex_release/           Regex release evaluation
+    opf_benchmark/           OPF benchmark evaluation
+    pii350_release/          PII350 release evaluation
 tests/                       Automated tests
 scripts/                     Generation, evaluation, migration, and reporting tools
 examples/                    Small offline examples
-naacl submission/            Paper PDF, LaTeX, bibliography, ACL styles, and figures
+paper/                       Paper PDF, LaTeX, bibliography, ACL styles, and figures
 docs/ARCHITECTURE.md         Codebase architecture guide
 ```
 
@@ -102,6 +108,8 @@ uv run ruff check --config ruff-strict.toml .
 uv run mypy src/meddies_pii
 uv run basedpyright src/meddies_pii
 ```
+
+Strict MyPy checks every module under `src/meddies_pii` with no MyPy exclusions. BasedPyright runs in standard mode across the same source and excludes only `.venv`.
 
 The broader generation, evaluation, training, and reporting workflows are
 implemented under `src/meddies_pii/` and `scripts/`. Their commands may require

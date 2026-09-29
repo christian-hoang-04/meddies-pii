@@ -32,7 +32,19 @@ Dependency direction is inward. `cli.py` and `scripts/` adapt inputs, environmen
 | Publishing | Explicit Hugging Face dataset helpers | `src/meddies_pii/publishing/` |
 | Maintainer operations | Modal launchers, migration utilities, report renderers, archived one-offs | `scripts/` |
 
-`scripts/` is not an implementation layer. Put reusable parsing, validation, policy, scoring, or data transformation in the package first. Keep a script as a thin executable adapter.
+`scripts/` is not an implementation layer. Put reusable parsing, validation, policy, scoring, or data transformation in the package first. Keep a script as a thin executable adapter. See [`scripts/README.md`](../scripts/README.md) for the maintainer-script directory guide.
+
+## Shared runtime seams
+
+Platform-sensitive coordination and process measurements live behind small
+package modules rather than being reimplemented in individual workflows:
+
+- `file_locks.py` provides stable exclusive locks on both POSIX and Windows;
+- `runtime_memory.py` provides peak/current resident-memory measurements with
+  procfs, `resource`, and Windows fallbacks.
+
+These modules keep benchmark and cache behavior identical while allowing the
+package and its tests to be imported on a contributor's operating system.
 
 ## Runtime boundaries
 

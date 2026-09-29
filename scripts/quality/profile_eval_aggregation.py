@@ -28,8 +28,6 @@ from __future__ import annotations
 # ruff: file-ignore[print]
 # reason: this is a command-line script; its standard output is the product.
 import hashlib
-import resource
-import sys
 import time
 from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, overload, override
@@ -42,6 +40,7 @@ from meddies_pii.modal_runtime import (
     MODAL_SOURCE_ROOT,
     add_source_pythonpath,
 )
+from meddies_pii.runtime_memory import peak_rss_bytes
 
 if TYPE_CHECKING:
     from meddies_pii.taxonomy import PiiLabel
@@ -61,9 +60,8 @@ app = modal.App(APP_NAME, image=image)
 
 
 def _peak_rss_bytes() -> int:
-    """Return process peak resident bytes on Linux and macOS."""
-    value = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-    return value if sys.platform == "darwin" else value * 1024
+    """Return portable process peak resident bytes."""
+    return peak_rss_bytes()
 
 
 def _span(start: int, end: int, text: str, label: str) -> JsonObject:

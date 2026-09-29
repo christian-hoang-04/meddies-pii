@@ -20,7 +20,6 @@ from __future__ import annotations
 # reason: 2 to 9 same-type raises per function - so converting only the isinstance-guarded raise would split
 # reason: one failure class across two exception types on the shape of the guard. Each states one contract:
 # reason: a malformed ledger, receipt, cadence result, or cell list is refused, never a caller type error.
-import fcntl
 import json
 import os
 import shlex
@@ -44,6 +43,7 @@ from meddies_pii.evaluation.identity import (
     file_sha256,
     is_sha256,
 )
+from meddies_pii.file_locks import exclusive_file_lock
 from meddies_pii.json_types import is_str_mapping
 from meddies_pii.taxonomy import PII_LABEL_SET
 
@@ -451,13 +451,12 @@ def _with_approval_ledger_lock[Result](ledger_path: str | Path, operation: Calla
     path = Path(ledger_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = path.with_name(f"{path.name}.lock")
-    with lock_path.open("a+", encoding="utf-8") as lock:
-        try:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as error:
-            msg = "approval ledger is busy; concurrent issuance is refused"
-            raise RuntimeError(msg) from error
-        return operation(path)
+    try:
+        with exclusive_file_lock(lock_path, blocking=False):
+            return operation(path)
+    except BlockingIOError as error:
+        msg = "approval ledger is busy; concurrent issuance is refused"
+        raise RuntimeError(msg) from error
 
 
 def inspect_approval_ledger(ledger_path: str | Path) -> dict[str, Any]:

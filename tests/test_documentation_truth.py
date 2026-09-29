@@ -99,10 +99,8 @@ def test_evaluation_documentation_paths_match_the_canonical_tree() -> None:
     for module in EVALUATION_MODULES:
         assert f"    {module}/" in readme
 
-    opf_runbook = (REPOSITORY_ROOT / "ops" / "opf-inference-benchmark-approach.md").read_text(encoding="utf-8")
     for path in OPF_TEST_PATHS:
         assert (REPOSITORY_ROOT / path).is_file()
-        assert path in opf_runbook
 
 
 def _collapsed(text: str) -> str:

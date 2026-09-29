@@ -60,7 +60,7 @@ def test_moved_scripts_do_not_use_unreviewed_root_hacks() -> None:
     offenders: list[str] = []
     for directory in SCRIPT_SUBDIRS:
         for path in sorted(directory.glob("*.py")):
-            text = path.read_text()
+            text = path.read_text(encoding="utf-8")
             offenders.extend(
                 f"{path.relative_to(REPO)}: {pattern.pattern}"
                 for pattern in UNREVIEWED_ROOT_PATTERNS
@@ -74,7 +74,7 @@ def test_ops_scripts_do_not_mutate_sys_path() -> None:
     offenders = [
         path.relative_to(REPO)
         for path in sorted((REPO / "scripts/ops").glob("*.py"))
-        if "sys.path.insert" in path.read_text()
+        if "sys.path.insert" in path.read_text(encoding="utf-8")
     ]
 
     assert offenders == []
